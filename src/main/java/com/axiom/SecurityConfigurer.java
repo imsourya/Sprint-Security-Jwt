@@ -8,9 +8,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.authentication.AuthenticationManagerFactoryBean;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.axiom.filter.JwtFilter;
 import com.axiom.service.MyUserDetailsService;
 
 @EnableWebSecurity
@@ -18,6 +21,9 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter{
 	
 	@Autowired
 	private MyUserDetailsService myUserDetailService;
+	
+	@Autowired
+	private JwtFilter jwtRequestFilter;
 
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -28,7 +34,10 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter{
 	protected void configure(HttpSecurity httpSec) throws Exception {
 		httpSec.csrf().disable().authorizeRequests().antMatchers("/authenticate")
 		.permitAll()
-		.anyRequest().authenticated();
+		.anyRequest().authenticated().and()
+		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		
+		httpSec.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	
 	@Override
